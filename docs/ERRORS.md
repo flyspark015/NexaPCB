@@ -54,6 +54,16 @@ nexapcb explain PIN_PAD_MISMATCH
 - likely cause: bad SKU or importer failure
 - suggested fix: verify SKU, inspect `jlc_import_report.json`
 
+### `SKU_NOT_CONFIRMED`
+- meaning: a part has no confirmed supplier/catalog SKU
+- likely cause: the exact supplier reference is not known yet
+- suggested fix: search LCSC/JLCPCB/EasyEDA/SemiNest or the supplier catalog and add the SKU only if the exact match is confirmed
+
+### `SKU_IMPORT_FAILED`
+- meaning: NexaPCB could not import symbol, footprint, or model for the provided SKU
+- likely cause: wrong SKU, unsupported provider, importer failure, or missing external dependency
+- suggested fix: verify the SKU, check provider support, inspect `jlc_import_report.json`, or fall back to custom assets
+
 ### `CUSTOM_SYMBOL_NOT_FOUND`
 - meaning: declared custom symbol file does not exist
 - likely cause: wrong path
@@ -73,6 +83,16 @@ nexapcb explain PIN_PAD_MISMATCH
 - meaning: symbol pins and footprint pads do not match
 - likely cause: wrong symbol, wrong footprint, or wrong pin labels in SKiDL
 - suggested fix: inspect part first, compare symbol vs footprint, add verified pin map if needed
+
+### `PIN_LABEL_NOT_CONFIRMED`
+- meaning: SKiDL code used a pin label not found in the inspected symbol
+- likely cause: guessed pin name or wrong symbol assumption
+- suggested fix: run `nexapcb part pins` or `nexapcb part report` and use the exact symbol pin label
+
+### `FOOTPRINT_PAD_MISMATCH`
+- meaning: symbol pins do not match footprint pads
+- likely cause: footprint choice is wrong, pad count differs, or the symbol uses different numbering semantics
+- suggested fix: run `nexapcb part compare`, choose a matching footprint, or add a verified pin map only if electrically correct
 
 ### `ABSOLUTE_PATH_FOUND`
 - meaning: generated KiCad artifacts still contain absolute paths

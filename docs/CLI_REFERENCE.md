@@ -138,6 +138,15 @@ Output includes:
 - suggested fix
 - examples where useful
 
+Use:
+
+```bash
+nexapcb help sku
+nexapcb help part-request
+```
+
+for longer workflow guidance.
+
 Exit behavior:
 - `0` for known code
 - nonzero for unknown code in strict script use
@@ -439,6 +448,11 @@ Reports:
 Exit behavior:
 - `0` on successful inspection
 - nonzero on missing symbol/footprint/model or hard mismatch conditions
+
+Notes:
+- use `part lookup` when you have a confirmed supplier/catalog SKU
+- use `part inspect` and `part compare` before wiring complex parts in SKiDL
+- do not guess pin labels; read `symbol_pin_report.json` and `pin_pad_compare_report.json`
 
 ---
 

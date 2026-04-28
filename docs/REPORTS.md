@@ -50,6 +50,9 @@ output/reports/
   - symbol source
   - footprint source
   - LCSC
+  - SKU
+  - SKU provider
+  - no-SKU reason
   - custom asset metadata
   - warnings
 
@@ -108,6 +111,13 @@ output/reports/
 ### `asset_report`
 - purpose: symbol/footprint/model availability and localization
 
+### SKU / no-SKU interpretation
+
+For AI and automation:
+- a part with `SKU` or `LCSC` metadata is a candidate for catalog-based asset import
+- a part with `NO_SKU_REASON` is intentionally documented as manual/custom for now
+- do not treat “no SKU” as an electrical failure; treat it as a sourcing/import metadata gap
+
 ### `final_result`
 - purpose: first file an AI agent should read
 - key fields:
@@ -135,6 +145,13 @@ Suggested read order:
    - `nexapcb ref show`
    - `nexapcb net show`
    - `nexapcb issue by-code`
+
+For part-study before wiring:
+1. `part_summary_report.json`
+2. `symbol_pin_report.json`
+3. `footprint_pad_report.json`
+4. `pin_pad_compare_report.json`
+5. `skidl_usage_report.json`
 
 ## Markdown vs JSON
 

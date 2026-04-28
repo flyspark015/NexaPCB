@@ -97,15 +97,34 @@ U1.footprint = "RF_Module:ESP32-S3-WROOM-1"
 R1.footprint = "Resistor_SMD:R_0603_1608Metric"
 ```
 
-## LCSC field
+## SKU and catalog metadata
 
-Only use confirmed SKU values:
+In NexaPCB, “SKU” means the supplier/catalog reference used to locate importable assets such as symbols, footprints, and 3D models. In current LCSC/JLCPCB/EasyEDA-style flows this is usually the `Cxxxxx` number.
+
+Recommended normalized style:
 
 ```python
-R1.fields["LCSC"] = "C25804"
+R1.fields["MPN"] = "0603 10k resistor"
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
 ```
 
-Do not guess SKUs.
+Supported alias fields:
+- `LCSC`
+- `JLCPCB`
+- `JLC`
+- `EASYEDA`
+- `SEMINEST`
+- `SKU`
+
+Currently implemented importer:
+- LCSC / JLCPCB / EasyEDA `C-number` flow
+
+Do not guess SKUs. If the exact catalog reference is not confirmed:
+
+```python
+U7.fields["NO_SKU_REASON"] = "SKU not confirmed"
+```
 
 ## Custom asset fields
 
@@ -160,6 +179,15 @@ If you are unsure, run:
 nexapcb part pins --symbol file.kicad_sym --symbol-name MY_PART --format json
 ```
 
+Before wiring a complex part, study it first:
+
+```bash
+nexapcb part lookup --sku C82899 --output part_cache/esp32_c82899
+nexapcb part report --input part_cache/esp32_c82899 --format json
+```
+
+Use only the pin labels the symbol actually exposes. Do not assume labels like `GPIO0`, `RF`, or `VIDEO`.
+
 ## No-connect guidance
 
 Use explicit no-connect handling for intentionally unused pins in the source design instead of leaving ambiguity for the exporter. If you are using placeholder symbols, document intentionally unused pins clearly.
@@ -195,6 +223,8 @@ Use `modular_esp32` for:
 - missing `generate_netlist()` or `generate_xml()`
 - relying on unstable/random refs
 - using wrong pin labels without first inspecting the symbol
+- using a supplier SKU as the electrical `value`
+- guessing a `Cxxxxx` SKU without catalog confirmation
 - using semantic connector pin names against numeric-only footprints without a pin-map
 - guessing LCSC SKU values
 - leaving custom asset paths broken

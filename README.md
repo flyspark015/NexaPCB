@@ -36,6 +36,16 @@ It is built for:
 - it does **not** guarantee a routed or production-clean PCB for complex projects
 - it reports design and generation problems; it does not silently “fix” them
 
+> ⚠️ Do not guess part SKUs or pin labels.
+>
+> For complex parts, always:
+> 1. confirm the SKU from a supplier/catalog,
+> 2. inspect the symbol pins,
+> 3. compare the footprint pads,
+> 4. then write SKiDL wiring.
+>
+> NexaPCB reports issues, but clean input produces much better KiCad output.
+
 ## Alpha status
 
 NexaPCB is GitHub-ready as an alpha CLI/reporting tool.
@@ -247,6 +257,96 @@ R1.fields["LCSC"] = "C25804"
 
 Do not guess SKU values. Only use a confirmed match.
 
+## 📦 Automatic Symbol / Footprint / 3D Model Import Using SKU
+
+NexaPCB can use a supplier SKU/catalog reference to import or locate:
+- schematic symbol
+- PCB footprint
+- 3D model, when available
+
+“SKU” in NexaPCB means the catalog reference used to identify a part for importing symbols, footprints, and 3D models. In many JLC/LCSC/EasyEDA flows this is the `Cxxxxx` number. If future SemiNest SKU support is available, the same concept applies.
+
+Accepted SKU/reference types conceptually include:
+- LCSC SKU
+- JLCPCB SKU
+- EasyEDA/JLCEDA part number
+- SemiNest SKU / `seminest.in` part reference
+- future supported supplier SKU
+
+Use normalized metadata when possible:
+
+```python
+R1 = Part("Device", "R", ref="R1", value="10k")
+R1.footprint = "Resistor_SMD:R_0603_1608Metric"
+R1.fields["MPN"] = "0603 10k resistor"
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
+```
+
+Backward-compatible aliases:
+
+```python
+R1.fields["LCSC"] = "C25804"
+R1.fields["JLCPCB"] = "C25804"
+R1.fields["EASYEDA"] = "C25804"
+R1.fields["SEMINEST"] = "SNxxxxx"
+```
+
+Do **not** use the SKU as the electrical value.
+
+Correct:
+
+```python
+R1 = Part("Device", "R", ref="R1", value="10k")
+R1.footprint = "Resistor_SMD:R_0603_1608Metric"
+R1.fields["MPN"] = "0603 10k resistor"
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
+```
+
+Wrong:
+
+```python
+R1 = Part("Device", "R", ref="R1", value="C25804")
+```
+
+Why wrong:
+- `C25804` is a catalog reference, not the resistor value
+- the electrical value should remain `10k`
+- the SKU belongs in metadata fields
+
+Currently implemented importer flow:
+- LCSC / JLCPCB / EasyEDA style `Cxxxxx` catalog numbers
+
+Other provider fields are documented for future/provider-specific integrations. They serve the same conceptual role as a catalog reference, but actual importer support depends on the provider.
+
+## 🔎 SKU Confirmation Rule
+
+Before adding a SKU to SKiDL, the user or AI should verify it from the supplier site or trusted catalog source.
+
+For AI agents:
+- search the supplier/catalog before adding SKU metadata
+- confirm the SKU matches the exact MPN, value, and package
+- do not guess SKUs
+- if SKU is unknown, leave it blank and add:
+
+```python
+part.fields["NO_SKU_REASON"] = "SKU not confirmed"
+```
+
+Example:
+
+```python
+# SKU confirmed from supplier search.
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
+
+# SKU not confirmed.
+U7.fields["NO_SKU_REASON"] = "Exact LCSC/JLCPCB SKU not confirmed"
+```
+
+If browsing/catalog lookup is unavailable, the AI must not invent a SKU.
+
 Study a part before wiring it:
 
 ```bash
@@ -254,6 +354,72 @@ Study a part before wiring it:
   --sku C25804 \
   --output /tmp/part_c25804
 ```
+
+## 🧠 Study Part Pins Before Wiring SKiDL
+
+Before wiring a complex IC, module, or connector, inspect the actual imported symbol pins and footprint pads.
+
+Use:
+
+```bash
+nexapcb part lookup --sku Cxxxxx --output part_cache/<part_name>
+nexapcb part inspect --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --footprint path/to/footprint.kicad_mod --output part_cache/<part_name>
+nexapcb part compare --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --footprint path/to/footprint.kicad_mod --output part_cache/<part_name>
+nexapcb part pins --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --format json
+nexapcb part pads --footprint path/to/footprint.kicad_mod --format json
+nexapcb part skidl-snippet --input part_cache/<part_name> --ref U1
+```
+
+This prevents:
+- wrong SKiDL pin labels
+- symbol/footprint mismatch
+- wrong pad names
+- missing pins
+- unconnected pins caused by guessed labels
+
+### Safe wiring example
+
+Step 1: lookup by SKU
+
+```bash
+nexapcb part lookup --sku C82899 --output part_cache/esp32_c82899
+```
+
+Step 2: read safe pin labels
+
+```bash
+nexapcb part report --input part_cache/esp32_c82899 --format json
+```
+
+Step 3: use only confirmed pin labels in SKiDL
+
+```python
+U1["3V3"] += SYS_3V3
+U1["GND"] += GND
+U1["EN"] += ESP_EN
+```
+
+Do not assume pin labels. Use what the symbol actually exposes.
+
+## Normalized SKU fields
+
+Recommended metadata schema:
+
+```python
+part.fields["MPN"] = "STM32F405RGT6TR"
+part.fields["SKU"] = "Cxxxxx"
+part.fields["SKU_PROVIDER"] = "LCSC"
+part.fields["DATASHEET"] = "https://..."
+part.fields["MANUFACTURER"] = "STMicroelectronics"
+```
+
+Supported legacy or alias fields:
+- `LCSC`
+- `JLCPCB`
+- `JLC`
+- `EASYEDA`
+- `SEMINEST`
+- `SKU`
 
 ## Part study before wiring
 
@@ -276,6 +442,28 @@ Useful follow-ups:
 .venv/bin/python -m nexapcb.cli part compare --symbol /path/to/part.kicad_sym --symbol-name MY_PART --footprint /path/to/part.kicad_mod --output /tmp/part_compare
 .venv/bin/python -m nexapcb.cli part skidl-snippet --input /tmp/part_compare --format json
 ```
+
+## Custom asset fallback
+
+If no SKU-based asset import exists, use custom assets:
+
+```python
+part.fields["CUSTOM_SYMBOL"] = "/path/to/symbol.kicad_sym"
+part.fields["CUSTOM_SYMBOL_NAME"] = "MY_PART"
+part.fields["CUSTOM_FOOTPRINT"] = "/path/to/footprint.kicad_mod"
+part.fields["CUSTOM_MODEL"] = "/path/to/model.step"
+```
+
+Then run:
+
+```bash
+nexapcb asset localize --output out/project --custom-assets custom_assets.json
+```
+
+Final KiCad paths should use:
+- `${KIPRJMOD}/symbols/custom/...`
+- `${KIPRJMOD}/footprints/custom.pretty/...`
+- `${KIPRJMOD}/3d_models/custom/...`
 
 ## Report overview
 
