@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# KiCad backup/lock files
+*.lck
+*-backups/
+*.bak
+*.kicad_prl
+
+# Generated workspaces
+workspace/*/logs/
+workspace/*/work/
+workspace/*/import_raw/
+
+# Optional heavy generated assets
+# workspace/*/3d_models/
+# workspace/*/footprints/
+# workspace/*/symbols/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
