@@ -1,45 +1,53 @@
-# Part Request System
+# 🧠 Part Request System
+> Study a part before writing SKiDL so you do not guess symbol pins, footprint pads, or model availability.
 
-The part request system exists to prevent wiring mistakes before SKiDL code is written.
+## 🧭 Overview
 
-Typical problems it helps avoid:
+The part-request system exists to prevent mistakes such as:
 - wrong SKiDL pin labels
 - symbol pin name vs pad number mismatch
 - wrong footprint choice
 - missing 3D model
-- custom symbol/footprint mismatch
-- incorrect assumptions about LCSC/JLC imports
+- custom symbol / footprint mismatch
+- incorrect assumptions about supplier imports
 
-## Core commands
+> [!IMPORTANT]
+> Before wiring a complex part, ask NexaPCB what pins and pads actually exist.
 
-- `nexapcb part lookup`
-- `nexapcb part inspect`
-- `nexapcb part compare`
-- `nexapcb part request`
-- `nexapcb part report`
-- `nexapcb part pins`
-- `nexapcb part pads`
-- `nexapcb part skidl-snippet`
-- `nexapcb part model-check`
+## 🚀 Command table
 
-## Lookup by SKU
+| Command | Purpose |
+|---|---|
+| `part lookup` | Import / study a part by confirmed supplier SKU |
+| `part inspect` | Inspect local symbol / footprint / model files |
+| `part compare` | Compare symbol pins against footprint pads |
+| `part request` | AI-friendly wrapper for lookup/inspect |
+| `part report` | Read a study folder |
+| `part pins` | Print symbol pins only |
+| `part pads` | Print footprint pads only |
+| `part skidl-snippet` | Generate a safe starter snippet |
+| `part model-check` | Check model linkage |
+
+## 📦 Lookup by SKU
 
 ```bash
-nexapcb part lookup --sku C25804 --output /tmp/part_c25804
+.venv/bin/python -m nexapcb.cli part lookup --sku C25804 --output /tmp/part_c25804
 ```
 
-Use this when you have a confirmed supplier/catalog SKU and want:
+Use this when you have a **confirmed** supplier/catalog SKU and want:
 - imported symbol
 - imported footprint
 - imported 3D model if available
 - a study bundle before wiring SKiDL
 
-For now, the primary implemented importer flow is the LCSC/JLCPCB/EasyEDA `Cxxxxx` style catalog number.
+Current implemented importer flow:
+- ✅ LCSC / JLCPCB / EasyEDA `Cxxxxx` catalog numbers
+- ⚠️ other provider references are conceptually supported as catalog references, but importer support may remain provider-specific
 
-## Inspect local assets
+## 🔎 Inspect local assets
 
 ```bash
-nexapcb part inspect \
+.venv/bin/python -m nexapcb.cli part inspect \
   --symbol /path/to/my_symbol.kicad_sym \
   --symbol-name MY_PART \
   --footprint /path/to/MY_PART.kicad_mod \
@@ -47,28 +55,32 @@ nexapcb part inspect \
   --output /tmp/part_study
 ```
 
-## Compare symbol vs footprint
+## 🔬 Compare symbol vs footprint
 
 ```bash
-nexapcb part compare \
+.venv/bin/python -m nexapcb.cli part compare \
   --symbol /path/to/my_symbol.kicad_sym \
   --symbol-name MY_PART \
   --footprint /path/to/MY_PART.kicad_mod \
   --output /tmp/part_compare
 ```
 
-## Request abstraction
+This command is the fastest way to catch:
+- missing pads
+- extra pads
+- uncertain mappings
+- incompatible symbol/footprint pairs
 
-`part request` is the AI-friendly entry point:
+## 🤖 AI-friendly request entry point
 
 ```bash
-nexapcb part request --sku C25804 --output /tmp/part_req
+.venv/bin/python -m nexapcb.cli part request --sku C25804 --output /tmp/part_req
 ```
 
 or:
 
 ```bash
-nexapcb part request \
+.venv/bin/python -m nexapcb.cli part request \
   --symbol /path/to/my_symbol.kicad_sym \
   --symbol-name MY_PART \
   --footprint /path/to/MY_PART.kicad_mod \
@@ -76,55 +88,67 @@ nexapcb part request \
   --output /tmp/part_req
 ```
 
-## Reports generated
+## 📊 Report reading order
 
-- `part_summary_report.json/.md`
-- `symbol_pin_report.json/.md`
-- `footprint_pad_report.json/.md`
-- `pin_pad_compare_report.json/.md`
-- `model_report.json/.md`
-- `skidl_usage_report.json/.md`
+1. `part_summary_report.json`
+2. `symbol_pin_report.json`
+3. `footprint_pad_report.json`
+4. `pin_pad_compare_report.json`
+5. `skidl_usage_report.json`
 
-## How AI should use this
+## ✅ Safe SKiDL workflow
 
-1. inspect or lookup the part first
-2. read `symbol_pin_report.json`
-3. read `footprint_pad_report.json`
-4. read `pin_pad_compare_report.json`
-5. use `skidl_usage_report.json` to start the SKiDL declaration
-6. only then wire nets in the project
-
-Recommended workflow:
-
-1. choose the electrical part and package
-2. confirm the catalog SKU if available
-3. run `part lookup` or `part inspect`
-4. run `part compare`
-5. read `symbol_pin_report.json`
-6. read `footprint_pad_report.json`
-7. generate the recommended SKiDL snippet
-8. wire only confirmed symbol pin labels
-
-## Avoiding pin-label mismatch
-
-Do not guess labels like:
-- `U1["GPIO0"]`
-- `Q1["B"]`
-- `J1["VIDEO"]`
-
-Inspect the symbol first, then compare against footprint pads. If the symbol uses semantic labels but the footprint uses numeric pads, use a verified pin map or numeric access only after confirming the mapping.
-
-Safe example:
+Step 1:
 
 ```bash
-nexapcb part lookup --sku C82899 --output part_cache/esp32_c82899
-nexapcb part report --input part_cache/esp32_c82899 --format json
+.venv/bin/python -m nexapcb.cli part lookup --sku C82899 --output part_cache/esp32_c82899
 ```
 
-Then use only confirmed labels:
+Step 2:
+
+```bash
+.venv/bin/python -m nexapcb.cli part report --input part_cache/esp32_c82899 --format json
+```
+
+Step 3:
 
 ```python
 U1["3V3"] += SYS_3V3
 U1["GND"] += GND
 U1["EN"] += ESP_EN
 ```
+
+> [!WARNING]
+> Do not assume pin labels. Use only the labels the symbol actually exposes.
+
+## ❌ Wrong pin-label example
+
+Bad:
+
+```python
+U1["VIDEO"] += NET_VIDEO
+```
+
+Why bad:
+- you do not know whether `VIDEO` exists in the symbol
+- the symbol may expose `VID_IN`, `VIN`, or only numeric pins
+
+Better:
+- run `part pins`
+- run `part compare`
+- then wire only confirmed labels
+
+## ✅ Checklist
+
+- [ ] confirm SKU if using lookup
+- [ ] inspect symbol pins
+- [ ] inspect footprint pads
+- [ ] compare symbol vs footprint
+- [ ] read the generated SKiDL snippet
+- [ ] wire only confirmed symbol pins
+
+## 🔗 Related docs
+
+- [SKIDL_FORMAT_GUIDE.md](SKIDL_FORMAT_GUIDE.md)
+- [CUSTOM_PARTS.md](CUSTOM_PARTS.md)
+- [REPORTS.md](REPORTS.md)

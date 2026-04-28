@@ -1,98 +1,59 @@
-# NexaPCB
+# ⚡ NexaPCB
+> CLI-first **SKiDL → KiCad** automation with structured reports for humans, scripts, and AI agents.
 
-NexaPCB is a CLI-only SKiDL-to-KiCad export and reporting tool for hardware automation loops.
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![KiCad](https://img.shields.io/badge/KiCad-CLI%20supported-005bbb)
+![SKiDL](https://img.shields.io/badge/SKiDL-source%20of%20truth-2b8a3e)
+![CLI](https://img.shields.io/badge/Interface-CLI%20only-6f42c1)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Status-Alpha-orange)
 
-It is built for:
-- normal users who want first-pass KiCad output from SKiDL
-- PCB developers who need structured validation and issue reports
-- AI coding agents that need machine-readable repair feedback
-- scripts/CI jobs that need stable command/JSON behavior
+NexaPCB converts **one-file** and **modular multi-file** SKiDL projects into KiCad projects and generates structured reports for:
+- source validation
+- symbol / footprint / 3D asset handling
+- pin / pad compatibility
+- ERC / DRC / connectivity
+- AI-assisted repair loops
 
-## What NexaPCB does
+> [!WARNING]
+> NexaPCB is **not** an autorouter and does **not** make a board manufacturing-ready automatically.
+> It reports design and generation issues so a human or AI agent can fix them deliberately.
 
-- validates one-file and modular multi-file SKiDL projects
-- executes SKiDL exports with the correct working directory and import path
-- generates KiCad project files:
-  - `.kicad_pro`
-  - `.kicad_sch`
-  - `.kicad_pcb`
-- localizes custom symbols, footprints, and 3D models into project-local folders
-- supports LCSC/JLCPCB SKU metadata when explicitly provided
-- generates detailed JSON and Markdown reports for:
-  - checks
-  - connectivity
-  - pin/pad mapping
-  - asset localization
-  - ERC/DRC
-  - board connectivity
-  - routing TODOs
-- provides pre-design part study commands so a user or AI can inspect a part before wiring it in SKiDL
+## 🧭 What NexaPCB is / is not
 
-## What NexaPCB does not do
+| ✅ NexaPCB is | ❌ NexaPCB is not |
+|---|---|
+| SKiDL-to-KiCad exporter | Autorouter |
+| Report generator | Replacement for engineering review |
+| AI feedback-loop tool | Guarantee of manufacturing readiness |
+| CLI automation toolbox | “One-click finished PCB” tool |
+| Part-study / pin-pad inspection helper | Datasheet replacement |
 
-- it is **not** an autorouter
-- it does **not** make a board manufacturing-ready automatically
-- it does **not** replace datasheet review
-- it does **not** guarantee a routed or production-clean PCB for complex projects
-- it reports design and generation problems; it does not silently “fix” them
+## 🚀 Fast start
 
-> ⚠️ Do not guess part SKUs or pin labels.
->
-> For complex parts, always:
-> 1. confirm the SKU from a supplier/catalog,
-> 2. inspect the symbol pins,
-> 3. compare the footprint pads,
-> 4. then write SKiDL wiring.
->
-> NexaPCB reports issues, but clean input produces much better KiCad output.
-
-## Alpha status
-
-NexaPCB is GitHub-ready as an alpha CLI/reporting tool.
-
-That means:
-- the CLI works
-- reports are generated
-- fixtures run
-- negative tests produce actionable failures
-
-It does **not** mean:
-- every generated board is production-ready
-- every stress-test design is fully routed or finalized
-
-## Installation
+### 1. Install
 
 ```bash
+git clone https://github.com/flyspark015/NexaPCB.git
+cd NexaPCB
 python3 -m venv .venv
 .venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install -e .
 ```
 
-Optional:
+Optional SKU importer dependency:
 
 ```bash
 .venv/bin/python -m pip install JLC2KiCadLib
 ```
 
-If KiCad CLI is installed, NexaPCB will automatically use it when it can find:
-- `/Volumes/ToyBook/KiCad/KiCad.app/Contents/MacOS/kicad-cli`
-- `/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli`
-
-You can also pass:
-
-```bash
---kicad-cli /path/to/kicad-cli
-```
-
-## Quick start
-
-### 1. Check local readiness
+### 2. Check the local environment
 
 ```bash
 .venv/bin/python -m nexapcb.cli doctor --format json
 ```
 
-### 2. Run a simple example
+### 3. Run a first example
 
 ```bash
 .venv/bin/python -m nexapcb.cli check all \
@@ -105,49 +66,50 @@ You can also pass:
   --project-name rc_filter \
   --output /tmp/nexapcb_rc_filter \
   --allow-issues
-```
 
-### 3. Read the result bundle first
-
-```bash
 .venv/bin/python -m nexapcb.cli report final \
   --output /tmp/nexapcb_rc_filter \
   --format json
 ```
 
-The first file an AI agent should read is:
+> [!TIP]
+> The first file an AI agent should read is:
+>
+> `output/reports/final_result.json`
+
+## 🔄 Core workflow
 
 ```text
-output/reports/final_result.json
+SKiDL source
+   ↓
+nexapcb check
+   ↓
+nexapcb export
+   ↓
+KiCad project + reports
+   ↓
+AI/user fixes SKiDL
+   ↺ repeat
 ```
 
-## CLI overview
+## 🧰 Command overview
 
-Top-level commands:
-
-- `nexapcb doctor`
-- `nexapcb version`
-- `nexapcb explain`
-- `nexapcb init`
-- `nexapcb check`
-- `nexapcb stage`
-- `nexapcb export`
-- `nexapcb report`
-- `nexapcb inspect`
-- `nexapcb erc`
-- `nexapcb drc`
-- `nexapcb part`
-- `nexapcb asset`
-- `nexapcb net`
-- `nexapcb ref`
-- `nexapcb issue`
-- `nexapcb examples`
-- `nexapcb help`
+| Command | Purpose | Typical user |
+|---|---|---|
+| `nexapcb doctor` | Check local tool readiness | user / CI / AI |
+| `nexapcb check` | Validate source before export | user / AI |
+| `nexapcb export` | Run the full SKiDL → KiCad pipeline | user / AI / script |
+| `nexapcb report` | Read normalized reports | user / AI |
+| `nexapcb inspect` | Query source/output quickly | AI / developer |
+| `nexapcb part inspect` | Inspect symbol / footprint / model before wiring | AI / user |
+| `nexapcb issue list` | Query structured issues | AI / developer |
+| `nexapcb net show` | Inspect a net directly | AI / developer |
+| `nexapcb ref show` | Inspect a component directly | AI / developer |
 
 See:
 - [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md)
 
-## One-file SKiDL example
+## 🧩 One-file SKiDL example
 
 ```python
 from skidl import *
@@ -158,11 +120,14 @@ GND = Net("GND")
 
 R1 = Part("Device", "R", ref="R1", value="10k")
 R1.footprint = "Resistor_SMD:R_0603_1608Metric"
-R1.fields["LCSC"] = "C25804"
+R1.fields["MPN"] = "0603 10k resistor"
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
 
 C1 = Part("Device", "C", ref="C1", value="100nF")
 C1.footprint = "Capacitor_SMD:C_0603_1608Metric"
-C1.fields["LCSC"] = "C1525"
+C1.fields["SKU"] = "C1525"
+C1.fields["SKU_PROVIDER"] = "LCSC"
 
 R1[1] += VCC
 R1[2] += OUT
@@ -174,7 +139,7 @@ generate_netlist(file_="rc_filter.net")
 generate_xml(file_="rc_filter.xml")
 ```
 
-## Modular multi-file SKiDL example
+## 🧱 Modular multi-file SKiDL example
 
 ```text
 skidl_project/
@@ -206,7 +171,7 @@ generate_netlist(file_="my_board.net")
 generate_xml(file_="my_board.xml")
 ```
 
-Run it with:
+Export it with:
 
 ```bash
 .venv/bin/python -m nexapcb.cli export \
@@ -216,7 +181,145 @@ Run it with:
   --output /tmp/my_board_out
 ```
 
-## Custom part example
+## 📦 SKU-Based Symbol / Footprint / 3D Import
+
+NexaPCB can use a supplier/catalog reference to import or locate:
+- schematic symbols
+- PCB footprints
+- 3D models when available
+
+“SKU” in NexaPCB means the catalog reference used to identify a part for importing symbols, footprints, and 3D models. In many JLC/LCSC/EasyEDA flows this is the `Cxxxxx` number. If future SemiNest SKU support is available, the same concept applies.
+
+### Supported conceptually
+
+- LCSC SKU
+- JLCPCB SKU
+- EasyEDA / JLCEDA part number
+- SemiNest SKU / `seminest.in` part reference
+- future provider-specific catalog references
+
+### Currently implemented importer flow
+
+- ✅ LCSC / JLCPCB / EasyEDA-style `Cxxxxx` catalog numbers
+- ⚠️ Other provider fields are documented for future/provider-specific integrations
+
+### Recommended normalized style
+
+```python
+R1 = Part("Device", "R", ref="R1", value="10k")
+R1.footprint = "Resistor_SMD:R_0603_1608Metric"
+R1.fields["MPN"] = "0603 10k resistor"
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
+```
+
+### Backward-compatible aliases
+
+```python
+R1.fields["LCSC"] = "C25804"
+R1.fields["JLCPCB"] = "C25804"
+R1.fields["EASYEDA"] = "C25804"
+R1.fields["SEMINEST"] = "SNxxxxx"
+```
+
+> [!IMPORTANT]
+> Do **not** use the SKU as the electrical value.
+
+Correct:
+
+```python
+R1 = Part("Device", "R", ref="R1", value="10k")
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
+```
+
+Wrong:
+
+```python
+R1 = Part("Device", "R", ref="R1", value="C25804")
+```
+
+Why wrong:
+- `C25804` is a catalog reference, not the resistor value
+- the electrical value should remain `10k`
+- the SKU belongs in metadata fields
+
+## 🔎 SKU confirmation rule
+
+Before adding a SKU to SKiDL, confirm it from the supplier site or trusted catalog source.
+
+### AI / automation rules
+
+- ✅ search the supplier/catalog before adding SKU metadata
+- ✅ confirm the SKU matches the exact MPN, value, and package
+- ❌ do not guess SKUs
+- ✅ if SKU is unknown, leave it blank and record:
+
+```python
+part.fields["NO_SKU_REASON"] = "SKU not confirmed"
+```
+
+Confirmed example:
+
+```python
+R1.fields["SKU"] = "C25804"
+R1.fields["SKU_PROVIDER"] = "LCSC"
+```
+
+Unconfirmed example:
+
+```python
+U7.fields["NO_SKU_REASON"] = "Exact LCSC/JLCPCB SKU not confirmed"
+```
+
+## 🧠 Study parts before wiring
+
+Before wiring a complex IC, module, connector, or custom sensor, inspect the actual symbol pins and footprint pads.
+
+### Command card
+
+```bash
+nexapcb part lookup --sku Cxxxxx --output part_cache/<part_name>
+nexapcb part inspect --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --footprint path/to/footprint.kicad_mod --output part_cache/<part_name>
+nexapcb part compare --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --footprint path/to/footprint.kicad_mod --output part_cache/<part_name>
+nexapcb part pins --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --format json
+nexapcb part pads --footprint path/to/footprint.kicad_mod --format json
+nexapcb part skidl-snippet --input part_cache/<part_name> --ref U1
+```
+
+This prevents:
+- wrong SKiDL pin labels
+- symbol/footprint mismatch
+- wrong pad names
+- missing pins
+- unconnected pins caused by guessed labels
+
+### Safe wiring example
+
+Step 1:
+
+```bash
+nexapcb part lookup --sku C82899 --output part_cache/esp32_c82899
+```
+
+Step 2:
+
+```bash
+nexapcb part report --input part_cache/esp32_c82899 --format json
+```
+
+Step 3:
+
+```python
+U1["3V3"] += SYS_3V3
+U1["GND"] += GND
+U1["EN"] += ESP_EN
+```
+
+> [!WARNING]
+> Do not assume pin labels. Use what the symbol actually exposes.
+
+## 🧷 Custom part example
 
 In SKiDL:
 
@@ -240,7 +343,7 @@ Or manifest:
 }
 ```
 
-Use:
+Localize them:
 
 ```bash
 .venv/bin/python -m nexapcb.cli asset localize \
@@ -249,321 +352,88 @@ Use:
   --custom-assets /path/to/custom_assets.json
 ```
 
-## LCSC / JLCPCB SKU example
-
-```python
-R1.fields["LCSC"] = "C25804"
-```
-
-Do not guess SKU values. Only use a confirmed match.
-
-## 📦 Automatic Symbol / Footprint / 3D Model Import Using SKU
-
-NexaPCB can use a supplier SKU/catalog reference to import or locate:
-- schematic symbol
-- PCB footprint
-- 3D model, when available
-
-“SKU” in NexaPCB means the catalog reference used to identify a part for importing symbols, footprints, and 3D models. In many JLC/LCSC/EasyEDA flows this is the `Cxxxxx` number. If future SemiNest SKU support is available, the same concept applies.
-
-Accepted SKU/reference types conceptually include:
-- LCSC SKU
-- JLCPCB SKU
-- EasyEDA/JLCEDA part number
-- SemiNest SKU / `seminest.in` part reference
-- future supported supplier SKU
-
-Use normalized metadata when possible:
-
-```python
-R1 = Part("Device", "R", ref="R1", value="10k")
-R1.footprint = "Resistor_SMD:R_0603_1608Metric"
-R1.fields["MPN"] = "0603 10k resistor"
-R1.fields["SKU"] = "C25804"
-R1.fields["SKU_PROVIDER"] = "LCSC"
-```
-
-Backward-compatible aliases:
-
-```python
-R1.fields["LCSC"] = "C25804"
-R1.fields["JLCPCB"] = "C25804"
-R1.fields["EASYEDA"] = "C25804"
-R1.fields["SEMINEST"] = "SNxxxxx"
-```
-
-Do **not** use the SKU as the electrical value.
-
-Correct:
-
-```python
-R1 = Part("Device", "R", ref="R1", value="10k")
-R1.footprint = "Resistor_SMD:R_0603_1608Metric"
-R1.fields["MPN"] = "0603 10k resistor"
-R1.fields["SKU"] = "C25804"
-R1.fields["SKU_PROVIDER"] = "LCSC"
-```
-
-Wrong:
-
-```python
-R1 = Part("Device", "R", ref="R1", value="C25804")
-```
-
-Why wrong:
-- `C25804` is a catalog reference, not the resistor value
-- the electrical value should remain `10k`
-- the SKU belongs in metadata fields
-
-Currently implemented importer flow:
-- LCSC / JLCPCB / EasyEDA style `Cxxxxx` catalog numbers
-
-Other provider fields are documented for future/provider-specific integrations. They serve the same conceptual role as a catalog reference, but actual importer support depends on the provider.
-
-## 🔎 SKU Confirmation Rule
-
-Before adding a SKU to SKiDL, the user or AI should verify it from the supplier site or trusted catalog source.
-
-For AI agents:
-- search the supplier/catalog before adding SKU metadata
-- confirm the SKU matches the exact MPN, value, and package
-- do not guess SKUs
-- if SKU is unknown, leave it blank and add:
-
-```python
-part.fields["NO_SKU_REASON"] = "SKU not confirmed"
-```
-
-Example:
-
-```python
-# SKU confirmed from supplier search.
-R1.fields["SKU"] = "C25804"
-R1.fields["SKU_PROVIDER"] = "LCSC"
-
-# SKU not confirmed.
-U7.fields["NO_SKU_REASON"] = "Exact LCSC/JLCPCB SKU not confirmed"
-```
-
-If browsing/catalog lookup is unavailable, the AI must not invent a SKU.
-
-Study a part before wiring it:
-
-```bash
-.venv/bin/python -m nexapcb.cli part lookup \
-  --sku C25804 \
-  --output /tmp/part_c25804
-```
-
-## 🧠 Study Part Pins Before Wiring SKiDL
-
-Before wiring a complex IC, module, or connector, inspect the actual imported symbol pins and footprint pads.
-
-Use:
-
-```bash
-nexapcb part lookup --sku Cxxxxx --output part_cache/<part_name>
-nexapcb part inspect --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --footprint path/to/footprint.kicad_mod --output part_cache/<part_name>
-nexapcb part compare --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --footprint path/to/footprint.kicad_mod --output part_cache/<part_name>
-nexapcb part pins --symbol path/to/symbol.kicad_sym --symbol-name SYMBOL_NAME --format json
-nexapcb part pads --footprint path/to/footprint.kicad_mod --format json
-nexapcb part skidl-snippet --input part_cache/<part_name> --ref U1
-```
-
-This prevents:
-- wrong SKiDL pin labels
-- symbol/footprint mismatch
-- wrong pad names
-- missing pins
-- unconnected pins caused by guessed labels
-
-### Safe wiring example
-
-Step 1: lookup by SKU
-
-```bash
-nexapcb part lookup --sku C82899 --output part_cache/esp32_c82899
-```
-
-Step 2: read safe pin labels
-
-```bash
-nexapcb part report --input part_cache/esp32_c82899 --format json
-```
-
-Step 3: use only confirmed pin labels in SKiDL
-
-```python
-U1["3V3"] += SYS_3V3
-U1["GND"] += GND
-U1["EN"] += ESP_EN
-```
-
-Do not assume pin labels. Use what the symbol actually exposes.
-
-## Normalized SKU fields
-
-Recommended metadata schema:
-
-```python
-part.fields["MPN"] = "STM32F405RGT6TR"
-part.fields["SKU"] = "Cxxxxx"
-part.fields["SKU_PROVIDER"] = "LCSC"
-part.fields["DATASHEET"] = "https://..."
-part.fields["MANUFACTURER"] = "STMicroelectronics"
-```
-
-Supported legacy or alias fields:
-- `LCSC`
-- `JLCPCB`
-- `JLC`
-- `EASYEDA`
-- `SEMINEST`
-- `SKU`
-
-## Part study before wiring
-
-Before writing SKiDL for a complex part:
-
-```bash
-.venv/bin/python -m nexapcb.cli part inspect \
-  --symbol /path/to/part.kicad_sym \
-  --symbol-name MY_PART \
-  --footprint /path/to/part.kicad_mod \
-  --model /path/to/part.step \
-  --output /tmp/part_study
-```
-
-Useful follow-ups:
-
-```bash
-.venv/bin/python -m nexapcb.cli part pins --symbol /path/to/part.kicad_sym --symbol-name MY_PART --format json
-.venv/bin/python -m nexapcb.cli part pads --footprint /path/to/part.kicad_mod --format json
-.venv/bin/python -m nexapcb.cli part compare --symbol /path/to/part.kicad_sym --symbol-name MY_PART --footprint /path/to/part.kicad_mod --output /tmp/part_compare
-.venv/bin/python -m nexapcb.cli part skidl-snippet --input /tmp/part_compare --format json
-```
-
-## Custom asset fallback
-
-If no SKU-based asset import exists, use custom assets:
-
-```python
-part.fields["CUSTOM_SYMBOL"] = "/path/to/symbol.kicad_sym"
-part.fields["CUSTOM_SYMBOL_NAME"] = "MY_PART"
-part.fields["CUSTOM_FOOTPRINT"] = "/path/to/footprint.kicad_mod"
-part.fields["CUSTOM_MODEL"] = "/path/to/model.step"
-```
-
-Then run:
-
-```bash
-nexapcb asset localize --output out/project --custom-assets custom_assets.json
-```
-
-Final KiCad paths should use:
+Expected final paths:
 - `${KIPRJMOD}/symbols/custom/...`
 - `${KIPRJMOD}/footprints/custom.pretty/...`
 - `${KIPRJMOD}/3d_models/custom/...`
 
-## Report overview
+## 📊 Reports that matter most
 
-Main reports live under:
-
-```text
-output/reports/
-```
-
-Most important first-read files:
-
-- `final_result.json`
-- `validation_report.json`
-- `issue_report.json`
-- `pin_pad_match_report.json`
-- `erc_report.json`
-- `drc_report.json`
-- `board_connectivity_report.json`
-- `unconnected_report.json`
+| Report | Why it matters |
+|---|---|
+| `final_result.json` | first file an AI agent should read |
+| `issue_report.json` | normalized actionable issues |
+| `pin_pad_match_report.json` | symbol/footprint compatibility |
+| `component_report.json` | ref/value/footprint/SKU/custom asset summary |
+| `connection_report.json` | net-level connectivity |
+| `erc_report.json` | schematic violations |
+| `drc_report.json` | PCB violations |
+| `board_connectivity_report.json` | pad-net assignment vs unrouted state |
 
 See:
 - [docs/REPORTS.md](docs/REPORTS.md)
 
-## AI agent workflow
+## 🤖 AI agent workflow
 
-Recommended loop:
+### Recommended loop
 
-1. write/update SKiDL
-2. run `nexapcb check`
-3. read `check_report.json`
-4. run `nexapcb export`
-5. read `final_result.json`
-6. run focused commands:
-   - `nexapcb report final`
-   - `nexapcb issue list`
-   - `nexapcb net show`
-   - `nexapcb ref show`
-   - `nexapcb part inspect`
-7. fix the SKiDL or custom assets
-8. repeat
-9. human opens KiCad for final engineering review
+- [ ] choose component MPN/value first
+- [ ] confirm SKU from supplier/catalog if available
+- [ ] inspect or compare complex parts before wiring
+- [ ] write / update SKiDL
+- [ ] run `nexapcb check`
+- [ ] run `nexapcb export --allow-issues`
+- [ ] read `final_result.json`
+- [ ] read `issue_report.json`, `pin_pad_match_report.json`, `component_report.json`, `connection_report.json`
+- [ ] fix SKiDL or assets
+- [ ] repeat
+- [ ] human opens KiCad for final review
 
 See:
 - [docs/AI_AGENT_WORKFLOW.md](docs/AI_AGENT_WORKFLOW.md)
 
-## Common errors
+## 🧪 QA
 
-- `SOURCE_FILE_NOT_FOUND`
-- `PYTHON_SYNTAX_ERROR`
-- `SKIDL_IMPORT_FAILED`
-- `XML_NOT_FOUND`
-- `NETLIST_NOT_FOUND`
-- `CUSTOM_SYMBOL_NOT_FOUND`
-- `CUSTOM_FOOTPRINT_NOT_FOUND`
-- `CUSTOM_MODEL_NOT_FOUND`
-- `PIN_PAD_MISMATCH`
-- `ABSOLUTE_PATH_FOUND`
-- `KICAD_CLI_NOT_FOUND`
-
-Use:
+Full QA script:
 
 ```bash
-.venv/bin/python -m nexapcb.cli explain --list
-.venv/bin/python -m nexapcb.cli explain PIN_PAD_MISMATCH
-```
-
-## QA
-
-Run the full QA plan:
-
-```bash
-cd /path/to/NexaPCB
 tests/run_full_qa.sh
 ```
 
-This writes:
-
-```text
-/tmp/nexapcb_qa/qa_summary.json
-/tmp/nexapcb_qa/qa_summary.md
-```
+QA summary files:
+- `/tmp/nexapcb_qa/qa_summary.json`
+- `/tmp/nexapcb_qa/qa_summary.md`
 
 See:
 - [docs/QA_TEST_PLAN.md](docs/QA_TEST_PLAN.md)
 - [docs/EXAMPLES.md](docs/EXAMPLES.md)
 
-## Final warning
+## ⚠️ Common errors
 
-NexaPCB is an export/reporting tool.
+Common failure categories:
+- `SOURCE_FILE_NOT_FOUND`
+- `PYTHON_SYNTAX_ERROR`
+- `SKIDL_EXPORT_FAILED`
+- `PIN_PAD_MISMATCH`
+- `CUSTOM_SYMBOL_NOT_FOUND`
+- `SKU_IMPORT_FAILED`
+- `KICAD_CLI_NOT_FOUND`
 
-It is **not** a promise that a generated board is:
-- routed
-- manufacturable
-- production-clean
-- approved without human review
+Use:
 
-Complex boards still require:
-- datasheet review
-- schematic review
-- placement review
-- routing review
-- ERC/DRC interpretation
-- human engineering judgment
+```bash
+nexapcb explain --list
+nexapcb explain PIN_PAD_MISMATCH
+```
+
+## 🔗 Related docs
+
+- [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md)
+- [docs/SKIDL_FORMAT_GUIDE.md](docs/SKIDL_FORMAT_GUIDE.md)
+- [docs/CUSTOM_PARTS.md](docs/CUSTOM_PARTS.md)
+- [docs/PART_REQUEST_SYSTEM.md](docs/PART_REQUEST_SYSTEM.md)
+- [docs/REPORTS.md](docs/REPORTS.md)
+- [docs/ERRORS.md](docs/ERRORS.md)
+- [docs/AI_AGENT_WORKFLOW.md](docs/AI_AGENT_WORKFLOW.md)
+- [docs/QA_TEST_PLAN.md](docs/QA_TEST_PLAN.md)
+- [docs/EXAMPLES.md](docs/EXAMPLES.md)

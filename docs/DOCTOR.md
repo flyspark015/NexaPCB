@@ -1,27 +1,70 @@
-# Doctor
+# 🩺 NexaPCB Doctor
+> Verify local environment readiness before debugging an export.
 
-`nexapcb doctor` checks whether the local system is ready to run NexaPCB.
+## 🧭 Overview
 
-## What it checks
+`nexapcb doctor` checks whether the local system is ready to run NexaPCB successfully.
 
-- Python version
-- platform
-- SKiDL availability and version
-- KiCad CLI availability and version
-- JLC2KiCadLib availability and version
-- output folder writeability
-- optional source path existence
+It is intended for:
 
-## Example
+- fresh machine setup
+- CI/environment debugging
+- preflight checks before large exports
+- AI agents validating local capability
+
+## 🚀 Quick usage
 
 ```bash
-nexapcb doctor --output /tmp/nexapcb_doctor
+.venv/bin/python -m nexapcb.cli doctor
+.venv/bin/python -m nexapcb.cli doctor --format json
+.venv/bin/python -m nexapcb.cli doctor --output /tmp/nexapcb_doctor
 ```
 
-## Reports
+## 🧩 What doctor checks
+
+| Check | Why it matters |
+|---|---|
+| Python version | Confirms runtime compatibility |
+| Platform | Helps explain path/tooling behavior |
+| SKiDL availability/version | Required for source execution |
+| KiCad CLI availability/version | Required for ERC/DRC automation |
+| JLC2KiCadLib availability | Required for SKU-based asset import |
+| Output-folder writability | Required for report and artifact generation |
+| Optional source-path existence | Helps catch bad path assumptions early |
+
+## 📊 Outputs
 
 Doctor writes:
+
 - `doctor_report.json`
 - `doctor_report.md`
 
-Use this before debugging a failing export if you suspect an environment or dependency problem.
+Typical JSON fields:
+
+- Python version
+- platform
+- SKiDL status
+- KiCad CLI path/version
+- JLC importer availability
+- output writeability
+- overall readiness status
+
+## ✅ Checklist
+
+- Run doctor on fresh setup
+- Run doctor before debugging unexplained export failures
+- Prefer `--format json` in automation
+
+## ⚠️ Common mistakes
+
+| Mistake | Why it is wrong | Better approach |
+|---|---|---|
+| Assuming KiCad CLI exists | ERC/DRC commands may fail later | Run `doctor` first |
+| Assuming JLC importer exists | SKU import may fail later | Check doctor/importer status first |
+| Debugging source issues before checking environment | Wastes time | Verify doctor output first |
+
+## 🔗 Related docs
+
+- [CLI Reference](./CLI_REFERENCE.md)
+- [Errors](./ERRORS.md)
+- [QA Test Plan](./QA_TEST_PLAN.md)
