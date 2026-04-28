@@ -1,3 +1,2 @@
 skidl>=1.2.3
-textual>=0.70.0
 JLC2KiCadLib

@@ -36,3 +36,13 @@ workspace/*/import_raw/
 tmp/
 temp/
 *.tmp
+
+# Generated SKiDL / KiCad artifacts
+*.erc
+*.rpt
+*.net
+*.xml
+*_sklib.py
+nexapcb.egg-info/
+nexapcb_doctor/
+test_runs/

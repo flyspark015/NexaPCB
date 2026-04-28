@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nexapcb"
 version = "0.1.0"
-description = "SKiDL-to-KiCad automation tool with JLC/LCSC assets, custom parts, validation, Textual TUI, and MCP-ready control."
+description = "CLI-first SKiDL-to-KiCad automation tool with reports, custom parts, and ERC integration."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -19,9 +19,7 @@ keywords = [
   "eda",
   "jlcpcb",
   "lcsc",
-  "automation",
-  "textual",
-  "mcp"
+  "automation"
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -36,8 +34,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "skidl>=1.2.3",
-  "textual>=0.70.0"
+  "skidl>=1.2.3"
 ]
 
 [project.optional-dependencies]
@@ -52,8 +49,6 @@ jlc = [
 
 [project.scripts]
 nexapcb = "nexapcb.cli:main"
-nexapcb-tui = "nexapcb.tui_app:main"
-nexapcb-mcp-json = "nexapcb.mcp_json_server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

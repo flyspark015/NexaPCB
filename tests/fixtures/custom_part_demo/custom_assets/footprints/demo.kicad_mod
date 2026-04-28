@@ -1,0 +1,5 @@
+(footprint "demo" (version 20221018) (generator nexapcb)
+  (layer "F.Cu")
+  (pad "1" thru_hole circle (at 0 0) (size 1.6 1.6) (drill 0.8) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole circle (at 2.54 0) (size 1.6 1.6) (drill 0.8) (layers "*.Cu" "*.Mask"))
+)

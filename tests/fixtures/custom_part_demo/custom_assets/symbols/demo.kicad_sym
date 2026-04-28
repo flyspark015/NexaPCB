@@ -1,0 +1,17 @@
+(kicad_symbol_lib (version 20211014) (generator nexapcb)
+  (symbol "DEMO_CONN"
+    (pin_names hide)
+    (pin_numbers hide)
+    (symbol "DEMO_CONN_0_1"
+      (rectangle (start 0 0) (end 2.54 -2.54) (stroke (width 0.15) (type default)) (fill (type none)))
+      (pin passive line (at 0 -0.635 180) (length 2.54)
+        (name "1" (effects (font (size 1.27 1.27))))
+        (number "1" (effects (font (size 1.27 1.27))))
+      )
+      (pin passive line (at 0 -1.905 180) (length 2.54)
+        (name "2" (effects (font (size 1.27 1.27))))
+        (number "2" (effects (font (size 1.27 1.27))))
+      )
+    )
+  )
+)

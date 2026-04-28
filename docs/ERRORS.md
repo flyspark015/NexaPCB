@@ -1,0 +1,120 @@
+# Errors
+
+Use:
+
+```bash
+nexapcb explain --list
+nexapcb explain PIN_PAD_MISMATCH
+```
+
+## Core error codes
+
+### `SOURCE_FILE_NOT_FOUND`
+- meaning: source path does not exist
+- likely cause: bad `--source` or `--entry`
+- suggested fix: pass a valid source path
+
+### `PYTHON_SYNTAX_ERROR`
+- meaning: Python syntax failed before SKiDL export
+- likely cause: malformed source file
+- suggested fix: run `nexapcb check syntax`
+
+### `SKIDL_IMPORT_FAILED`
+- meaning: source could not import SKiDL or a local module
+- likely cause: bad module path or broken local import
+- suggested fix: run `nexapcb check imports`
+
+### `SKIDL_EXPORT_FAILED`
+- meaning: SKiDL execution did not generate netlist/XML
+- likely cause: export functions missing or runtime exception
+- suggested fix: verify `ERC()`, `generate_netlist()`, `generate_xml()`
+
+### `XML_NOT_FOUND`
+- meaning: XML export required by a later stage is missing
+- likely cause: SKiDL export was not run
+- suggested fix: run `nexapcb stage skidl-export` or `nexapcb export`
+
+### `NETLIST_NOT_FOUND`
+- meaning: `.net` export required by a later stage is missing
+- likely cause: SKiDL export was not run
+- suggested fix: rerun export and confirm `.net` exists
+
+### `MISSING_PREREQUISITE_AST_REPORT`
+- meaning: a later stage could not recover source metadata
+- likely cause: `ast_parse_report.json` missing
+- suggested fix: run `nexapcb stage ast`
+
+### `JLC2KICADLIB_NOT_FOUND`
+- meaning: SKU import dependency is unavailable
+- likely cause: optional dependency not installed
+- suggested fix: install `JLC2KiCadLib` or skip SKU import
+
+### `LCSC_SKU_IMPORT_FAILED`
+- meaning: SKU import failed
+- likely cause: bad SKU or importer failure
+- suggested fix: verify SKU, inspect `jlc_import_report.json`
+
+### `CUSTOM_SYMBOL_NOT_FOUND`
+- meaning: declared custom symbol file does not exist
+- likely cause: wrong path
+- suggested fix: fix the path or provide the symbol file
+
+### `CUSTOM_FOOTPRINT_NOT_FOUND`
+- meaning: declared custom footprint file does not exist
+- likely cause: wrong path
+- suggested fix: fix the path or provide the footprint file
+
+### `CUSTOM_MODEL_NOT_FOUND`
+- meaning: declared custom 3D model file does not exist
+- likely cause: wrong path
+- suggested fix: fix the path or provide the model file
+
+### `PIN_PAD_MISMATCH`
+- meaning: symbol pins and footprint pads do not match
+- likely cause: wrong symbol, wrong footprint, or wrong pin labels in SKiDL
+- suggested fix: inspect part first, compare symbol vs footprint, add verified pin map if needed
+
+### `ABSOLUTE_PATH_FOUND`
+- meaning: generated KiCad artifacts still contain absolute paths
+- likely cause: custom assets were not localized/re-written
+- suggested fix: run asset localization and recheck `${KIPRJMOD}` compliance
+
+### `KICAD_PROJECT_NOT_GENERATED`
+- meaning: expected `.kicad_pro/.kicad_sch/.kicad_pcb` missing
+- likely cause: generation stage failed
+- suggested fix: inspect `kicad_generation_report.json`
+
+### `KICAD_CLI_NOT_FOUND`
+- meaning: KiCad CLI could not be found
+- likely cause: KiCad not installed or path not discoverable
+- suggested fix: install KiCad or pass `--kicad-cli`
+
+### `ERC_FAILED`
+- meaning: ERC run itself failed
+- likely cause: KiCad CLI execution error
+- suggested fix: inspect raw KiCad command output
+
+### `ERC_VIOLATIONS_FOUND`
+- meaning: ERC completed and found violations
+- likely cause: design or generation issue
+- suggested fix: read `erc_report.json`
+
+### `DRC_FAILED`
+- meaning: DRC run itself failed
+- likely cause: KiCad CLI execution error
+- suggested fix: inspect raw KiCad command output
+
+### `DRC_VIOLATIONS_FOUND`
+- meaning: DRC completed and found violations
+- likely cause: board geometry/placement/routing issue
+- suggested fix: read `drc_report.json`
+
+### `UNCONNECTED_ITEMS_FOUND`
+- meaning: board contains unrouted/unconnected items
+- likely cause: normal first-pass board state or missing connectivity
+- suggested fix: read `unconnected_report.json` and `routing_todo_report.json`
+
+### `NOT_IMPLEMENTED`
+- meaning: command shell exists but logic is not implemented yet
+- likely cause: alpha/incomplete command
+- suggested fix: use the documented alternative path or implement the missing stage
